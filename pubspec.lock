@@ -204,10 +204,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: f235af38304ca449fb8bc33e61afd785cb0e8ad0
+      resolved-ref: e3e5dd7ac33d7ab1e6c17977461d5ae5802d0f28
       url: "git://github.com/skuweakyskies/SkyScrapeAPI.git"
     source: git
-    version: "3.0.0+4"
+    version: "3.0.0+6"
   sockjs_client:
     dependency: transitive
     description:

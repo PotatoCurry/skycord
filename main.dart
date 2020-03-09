@@ -13,15 +13,15 @@ main() async {
   bot.onMessageReceived.listen((MessageEvent e) async {
     if (e.message.content == "s!help") {
       e.message.channel.send(content: "s!help - Display a help message\n"
-                                      "s!login [username] [password] - Login to skycord\n"
+                                      "s!login [skyward url] [username] [password] - Login to skycord\n"
                                       "s!roulette - Display a random assignment");
     } else if (e.message.content.startsWith("s!login")) {
       e.message.channel.send(content: "Validating credentials...");
       final splitContent = e.message.content.split(" ");
       final userDetails = UserDetails()
-        ..skywardUrl = "https://skyward-fbprod.iscorp.com/scripts/wsisa.dll/WService=wsedufortbendtx/seplog01.w"
-        ..username = splitContent[1]
-        ..password = splitContent[2]
+        ..skywardUrl = splitContent[1]
+        ..username = splitContent[2]
+        ..password = splitContent[3]
         ..channelId = e.message.channel.id;
 
       final skyward = await SkyCore(userDetails.skywardUrl);
@@ -31,11 +31,11 @@ main() async {
         userDetails.skywardUser = user;
         users[e.message.author.id] = userDetails;
       } catch (error) {
-        e.message.channel.send(content: "Failed to login");
+        e.message.channel.send(content: "Login failed");
       }
     } else if (e.message.content == "s!roulette") {
       if (users.containsKey(e.message.author.id)) {
-        e.message.channel.send(content: "gimme a sec");
+        e.message.channel.send(content: "Fetching grades...");
         final userDetails = users[e.message.author.id];
         final user = userDetails.skywardUser as User;
         final gradebook = await user.getGradebook();

@@ -204,7 +204,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: e3e5dd7ac33d7ab1e6c17977461d5ae5802d0f28
+      resolved-ref: "11ae4fe06179ad0bc4b112c4ab7996b25c94622b"
       url: "git://github.com/skuweakyskies/SkyScrapeAPI.git"
     source: git
     version: "3.0.0+6"

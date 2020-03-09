@@ -44,7 +44,7 @@ Future<void> login(CommandContext ctx) async {
     ..username = username
     ..password = password;
 
-  ctx.channel.send(content: "Validating credentials...");
+  await ctx.channel.send(content: "Validating credentials...");
   ctx.channel.startTypingLoop();
   try {
     final user = await skycordUser.getSkywardUser();
@@ -57,14 +57,15 @@ Future<void> login(CommandContext ctx) async {
   }
 }
 
-@Command("oldlogin", typing: true)
+@Command("oldlogin")
 Future<void> oldLogin(CommandContext ctx) async {
   final splitContent = ctx.message.content.split(" ");
   if (splitContent.length != 4) {
     ctx.reply(content: "Invalid number of arguments");
     return;
   }
-  ctx.reply(content: "Validating credentials...");
+  await ctx.reply(content: "Validating credentials...");
+  ctx.channel.startTypingLoop();
   final skycordUser = SkycordUser()
     ..skywardUrl = splitContent[1]
     ..username = splitContent[2]
@@ -76,6 +77,8 @@ Future<void> oldLogin(CommandContext ctx) async {
     ctx.reply(content: "Logged in as " + await user.getName());
   } catch (error) {
     ctx.reply(content: "Login failed");
+  } finally {
+    ctx.channel.stopTypingLoop();
   }
 }
 

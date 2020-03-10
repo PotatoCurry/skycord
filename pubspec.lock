@@ -202,12 +202,10 @@ packages:
   skyscrapeapi:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "11ae4fe06179ad0bc4b112c4ab7996b25c94622b"
-      url: "git://github.com/skuweakyskies/SkyScrapeAPI.git"
-    source: git
-    version: "3.0.0+6"
+      name: skyscrapeapi
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.0+8"
   sockjs_client:
     dependency: transitive
     description:

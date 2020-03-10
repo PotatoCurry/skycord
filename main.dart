@@ -103,7 +103,10 @@ Future<void> roulette(CommandContext ctx) async {
         footer.text = "Powered by SkyScrapeAPI";
       });
     for (AssignmentProperty property in assignmentDetails)
-      embed.addField(name: property.infoName, content: property.info.isNullOrBlank() ? "Empty" : property.info, inline: true);
+      embed.addField(
+          name: property.infoName,
+          content: property.info.isNullOrBlank() ? "Empty" : property.info, inline: true
+      );
 
     ctx.reply(embed: embed);
   } else {
@@ -132,60 +135,66 @@ Future<void> battle(CommandContext ctx) async {
     return;
   }
   ctx.reply(content: "Do you accept this challenge, ${opponent.mention}? (Y/N)");
-  final response = (await ctx.nextMessageBy(opponent)).message.content;
-  if (response.toUpperCase().startsWith("Y")) {
+  final opponentConsents = await ctx.nextMessagesBy(opponent, limit: 10)
+      .map((event) => event.message.content.toUpperCase())
+      .firstWhere(
+          (content) => content.startsWith(RegExp(r"^[YN]")),
+          orElse: () => "N"
+      ).then((response) => response.startsWith("Y"));
+  if (opponentConsents) {
     await ctx.reply(content: "Let the battle begin!");
     ctx.channel.startTypingLoop();
   } else {
     ctx.reply(content: opponent.mention + " declined to battle");
     return;
   }
-
-  final skywardAuthor = await skycordUsers[ctx.author.id].getSkywardUser();
-  final skywardOpponent = await skycordUsers[opponent.id].getSkywardUser();
-//  await skywardAuthor;
-//  await skywardOpponent;
-  final authorHistory = await skywardAuthor.getHistory();
-  final opponentHistory = await skywardOpponent.getHistory();
+  final authorHistory = await skycordUsers[ctx.author.id].getSkywardUser()
+      .then((skywardAuthor) => skywardAuthor.getHistory());
+  final opponentHistory = await skycordUsers[opponent.id].getSkywardUser()
+      .then((skywardAuthor) => skywardAuthor.getHistory());
   final authorClasses = authorHistory.take(authorHistory.length - 1)
-      .expand((schoolYear) => schoolYear.classes);
+      .expand((schoolYear) => schoolYear.classes)
+      .where((histClass) => int.tryParse(histClass.grades.last) != null);
   final opponentClasses = opponentHistory.take(authorHistory.length - 1)
-      .expand((schoolYear) => schoolYear.classes);
+      .expand((schoolYear) => schoolYear.classes)
+      .where((histClass) => int.tryParse(histClass.grades.last) != null);
   // Original idea was to find common classes - too many naming discrepancies
   //  final commonClasses = authorClasses.where(
   //          (histClass) =>
   //              opponentClasses.map((cls) => cls.name).contains(histClass.name)
   //  );
-  final authorClass = authorClasses.random() as HistoricalClass;
-  final opponentClass = opponentClasses.random() as HistoricalClass;
-  final authorGrade = int.tryParse(authorClass.grades.last) ?? authorClass.grades.last;
-  final opponentGrade = int.tryParse(opponentClass.grades.last) ?? opponentClass.grades.last;
-  if (authorGrade is int && opponentGrade is int) {
-    var winner, winnerClass, winnerGrade;
-    var loser, loserClass, loserGrade;
-    if (authorGrade > opponentGrade) {
-      winner = ctx.author.mention;
-      winnerClass = authorClass.name;
-      winnerGrade = authorGrade;
-      loser = opponent.mention;
-      loserClass = opponentClass.name;
-      loserGrade = opponentGrade;
-    } else {
-      winner = opponent.mention;
-      winnerClass = opponentClass.name;
-      winnerGrade = opponentGrade;
-      loser = ctx.author.mention;
-      loserClass = authorClass.name;
-      loserGrade = authorGrade;
-    }
+  final authorClass = authorClasses.random();
+  final opponentClass = opponentClasses.random();
+  final authorGrade = int.parse(authorClass.grades.last);
+  final opponentGrade = int.parse(opponentClass.grades.last);
+
+  var winner, winnerClass, winnerGrade;
+  var loser, loserClass, loserGrade;
+  if (authorGrade >= opponentGrade) {
+    winner = ctx.author.mention;
+    winnerClass = authorClass.name;
+    winnerGrade = authorGrade;
+    loser = opponent.mention;
+    loserClass = opponentClass.name;
+    loserGrade = opponentGrade;
+  } else if (authorGrade < opponentGrade) {
+    winner = opponent.mention;
+    winnerClass = opponentClass.name;
+    winnerGrade = opponentGrade;
+    loser = ctx.author.mention;
+    loserClass = authorClass.name;
+    loserGrade = authorGrade;
+  }
+
+  if (winnerGrade == loserGrade) {
     ctx.reply(content:
-        "$winner's higher grade of $winnerGrade in $winnerClass"
-        " wins over $loser's grade of $loserGrade in $loserClass"
+        "Both $winner and $loser achieved a $winnerGrade in"
+        " $winnerClass and $loserClass, respectively"
     );
   } else {
     ctx.reply(content:
-        "${ctx.author.mention} achieved a $authorGrade in ${authorClass.name},"
-        " while ${opponent.mention} achieved a $opponentGrade in ${opponentClass.name}"
+        "$winner's higher grade of $winnerGrade in $winnerClass"
+        " wins over $loser's grade of $loserGrade in $loserClass"
     );
   }
   ctx.channel.stopTypingLoop();

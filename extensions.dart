@@ -16,8 +16,12 @@ extension IterableUtils on Iterable {
 }
 
 extension ContextUtils on CommandContext {
+  Stream<MessageReceivedEvent> nextMessagesBy(User user, {int limit = 100}) {
+    return nextMessagesWhere((event) => event.message.author == user, limit: limit);
+  }
+
   Future<MessageReceivedEvent> nextMessageBy(User user) {
-    return nextMessagesWhere((event) => event.message.author == user).first;
+    return nextMessagesBy(user).first;
   }
 
   Future<MessageReceivedEvent> nextMessageByAuthor() {

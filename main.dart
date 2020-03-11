@@ -14,7 +14,10 @@ main() async {
   final bot = NyxxVm(Platform.environment["SKYCORD_DISCORD_TOKEN"]);
   CommandsFramework(bot, prefix: "s!")..discoverCommands();
 
-  bot.onReady.first.then((event) => print("Bot ready"));
+  bot.onReady.first.then((event) {
+    print("Bot ready");
+    bot.self.setPresence(status: "s!help");
+  });
 }
 
 @Command("help")
@@ -22,7 +25,9 @@ Future<void> help(CommandContext ctx) async {
   ctx.reply(content: "s!help - Display a help message\n"
       "s!login - Interactive login (Does not work in DMs)\n"
       "s!oldlogin [skyward url] [username] [password] - Login to skycord\n"
-      "s!roulette - Display a random assignment");
+      "s!roulette - Display a random assignment"
+      "s!battle [opponent] - Battle another user on the basis of random class grades"
+  );
 }
 
 @Command("login")

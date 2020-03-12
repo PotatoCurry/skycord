@@ -135,6 +135,10 @@ Future<void> battle(CommandContext ctx) async {
   }
 
   final opponent = ctx.message.mentions.values.first;
+  if (ctx.author == opponent) {
+    ctx.reply(content: "You cannot battle yourself");
+    return;
+  }
   if (!skycordUsers.containsKey(opponent.id)) {
     ctx.reply(content: opponent.mention + " hasn't registered with skycord");
     return;

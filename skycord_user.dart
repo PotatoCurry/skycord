@@ -1,24 +1,32 @@
-import 'package:skyscrapeapi/data_types.dart';
+import 'package:hive/hive.dart';
 import 'package:skyscrapeapi/sky_core.dart';
 
-class SkycordUser {
+import 'main.dart';
+
+part 'skycord_user.g.dart';
+
+@HiveType()
+class SkycordUser extends HiveObject {
+  @HiveField(0)
+  String discordId;
+
+  @HiveField(1)
   String skywardUrl;
 
+  @HiveField(2)
   String username;
 
+  @HiveField(3)
   String password;
 
-  User skywardUser;
-
+  @HiveField(4)
   bool isSubscribed = false;
 
-  Assignment lastAssignment;
-
   Future<User> getSkywardUser() async {
-    if (skywardUser == null) {
-      final user = await SkyCore.login(username, password, skywardUrl);
-      skywardUser = user;
+    if (!cachedLogins.containsKey(discordId)) {
+      final skywardUser = await SkyCore.login(username, password, skywardUrl);
+      cachedLogins[discordId] = skywardUser;
     }
-    return skywardUser;
+    return cachedLogins[discordId];
   }
 }

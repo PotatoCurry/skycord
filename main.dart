@@ -1,17 +1,25 @@
 import 'dart:io';
 
+import 'package:hive/hive.dart';
 import 'package:nyxx/Vm.dart' hide User;
 import 'package:nyxx/commands.dart';
 import 'package:nyxx/nyxx.dart' hide User;
 import 'package:skyscrapeapi/data_types.dart';
+import 'package:skyscrapeapi/sky_core.dart';
 
 import 'extensions.dart';
 import 'skycord_user.dart';
 
-final skycordUsers = Map<Snowflake, SkycordUser>();
+final boxName = "skyBox";
+var skycordUsers;
+var cachedLogins = Map<String, User>();
 
 main() async {
-  final bot = NyxxVm(Platform.environment["SKYCORD_DISCORD_TOKEN"]);
+  if (!await File(boxName).exists())
+    Hive.init(boxName);
+  skycordUsers = await Hive.openBox<SkycordUser>(boxName);
+
+  final bot = NyxxVm(Platform.environment["SKYCORD_DISCORD_TOKEN"], ignoreExceptions: false);
   CommandsFramework(bot, prefix: "s!")..discoverCommands();
 
   bot.onReady.first.then((event) {
@@ -52,7 +60,7 @@ Future<void> login(CommandContext ctx) async {
   ctx.channel.startTyping();
   try {
     final user = await skycordUser.getSkywardUser();
-    skycordUsers[ctx.author.id] = skycordUser;
+    skycordUsers.put(ctx.author.id.id, skycordUser);
     ctx.channel.send(content: "Logged in as " + await user.getName());
   } catch (error) {
     ctx.channel.send(content: "Login failed");
@@ -73,19 +81,19 @@ Future<void> oldLogin(CommandContext ctx) async {
     ..username = splitContent[2]
     ..password = splitContent[3];
 
-  try {
+//  try {
     final user = await skycordUser.getSkywardUser();
-    skycordUsers[ctx.author.id] = skycordUser;
+    skycordUsers.put(ctx.author.id.id, skycordUser);
     ctx.reply(content: "Logged in as " + await user.getName());
-  } catch (error) {
-    ctx.reply(content: "Login failed");
-  }
+//  } catch (error) {
+//    ctx.reply(content: "Login failed");
+//  }
 }
 
 @Command("roulette", typing: true)
 Future<void> roulette(CommandContext ctx) async {
-  if (skycordUsers.containsKey(ctx.author.id)) {
-    final skycordUser = skycordUsers[ctx.author.id];
+  if (skycordUsers.containsKey(ctx.author.id.id)) {
+    final skycordUser = skycordUsers.get(ctx.author.id.id);
     final user = await skycordUser.getSkywardUser();
     final gradebook = await user.getGradebook();
     final assignments = await gradebook.quickAssignments;
@@ -117,7 +125,7 @@ Future<void> roulette(CommandContext ctx) async {
 
 @Command("battle")
 Future<void> battle(CommandContext ctx) async {
-  if (!skycordUsers.containsKey(ctx.author.id)) {
+  if (!skycordUsers.containsKey(ctx.author.id.id)) {
     ctx.reply(content: "Not yet registered");
     return;
   }
@@ -153,9 +161,9 @@ Future<void> battle(CommandContext ctx) async {
     ctx.reply(content: opponent.mention + " declined to battle");
     return;
   }
-  final authorHistory = await skycordUsers[ctx.author.id].getSkywardUser()
+  final authorHistory = await skycordUsers.get(ctx.author.id.id).getSkywardUser()
       .then((skywardAuthor) => skywardAuthor.getHistory());
-  final opponentHistory = await skycordUsers[opponent.id].getSkywardUser()
+  final opponentHistory = await skycordUsers(opponent.id.id).getSkywardUser()
       .then((skywardAuthor) => skywardAuthor.getHistory());
   final authorClasses = authorHistory.take(authorHistory.length - 1)
       .expand((schoolYear) => schoolYear.classes)

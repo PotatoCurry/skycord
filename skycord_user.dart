@@ -1,9 +1,10 @@
 import 'package:hive/hive.dart';
+import 'package:skyscrapeapi/data_types.dart';
 import 'package:skyscrapeapi/sky_core.dart';
 
-import 'main.dart';
+import 'extensions.dart';
 
-part 'skycord_user.g.dart';
+//part 'skycord_user.g.dart';
 
 @HiveType()
 class SkycordUser extends HiveObject {
@@ -22,11 +23,25 @@ class SkycordUser extends HiveObject {
   @HiveField(4)
   bool isSubscribed = false;
 
+  User skywardUser;
+
+  List<Assignment> previousEmptyAssignments = List();
+
   Future<User> getSkywardUser() async {
-    if (!cachedLogins.containsKey(discordId)) {
-      final skywardUser = await SkyCore.login(username, password, skywardUrl);
-      cachedLogins[discordId] = skywardUser;
-    }
-    return cachedLogins[discordId];
+    return skywardUser ??= await SkyCore.login(username, password, skywardUrl);
+  }
+
+  Future<List<Assignment>> getNewAssignments() async {
+    final skywardUser = await getSkywardUser();
+    final gradebook = await skywardUser.getGradebook();
+    final emptyAssignments = gradebook.quickAssignments
+        .where((assignment) => assignment.isNotGraded())
+        .toList();
+
+    final newAssignments = previousEmptyAssignments
+        .where((assignment) => !emptyAssignments.contains(assignment))
+        .toList();
+    previousEmptyAssignments = emptyAssignments;
+    return newAssignments;
   }
 }

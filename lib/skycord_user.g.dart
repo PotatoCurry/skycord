@@ -17,7 +17,6 @@ class SkycordUserAdapter extends TypeAdapter<SkycordUser> {
       for (var i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return SkycordUser()
-      ..discordId = fields[0] as String
       ..skywardUrl = fields[1] as String
       ..username = fields[2] as String
       ..password = fields[3] as String
@@ -27,9 +26,7 @@ class SkycordUserAdapter extends TypeAdapter<SkycordUser> {
   @override
   void write(BinaryWriter writer, SkycordUser obj) {
     writer
-      ..writeByte(5)
-      ..writeByte(0)
-      ..write(obj.discordId)
+      ..writeByte(4)
       ..writeByte(1)
       ..write(obj.skywardUrl)
       ..writeByte(2)

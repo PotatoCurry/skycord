@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:nyxx/nyxx.dart' as Nyxx;
 import 'package:skyscrapeapi/data_types.dart';
 import 'package:skyscrapeapi/sky_core.dart';
 
@@ -8,8 +9,7 @@ part 'skycord_user.g.dart';
 
 @HiveType(typeId: 0)
 class SkycordUser extends HiveObject {
-  @HiveField(0)
-  String discordId;
+  // Hive field 0 was intended to store Discord IDs, but was never used
 
   @HiveField(1)
   String skywardUrl;
@@ -26,6 +26,10 @@ class SkycordUser extends HiveObject {
   User skywardUser;
 
   List<Assignment> previousEmptyAssignments = List();
+
+  Future<Nyxx.User> getDiscordUser(Nyxx.Nyxx bot) async {
+    return bot.getUser(Nyxx.Snowflake(key));
+  }
 
   Future<User> getSkywardUser() async {
     return skywardUser ??= await SkyCore.login(username, password, skywardUrl);

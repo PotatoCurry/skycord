@@ -6,6 +6,7 @@ dependencies:
   skyscrapeapi:
     git: https://github.com/ClearHall/SkyScrapeAPI
   hive: ^1.4.1+1
+  logging: ^0.11.4
 
 dev_dependencies:
   hive_generator: ^0.7.0+2

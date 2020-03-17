@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:hive/hive.dart';
+import 'package:logging/logging.dart';
 import 'package:nyxx/Vm.dart' hide User;
 import 'package:nyxx/commands.dart';
 import 'package:nyxx/nyxx.dart' hide User;
@@ -12,31 +13,40 @@ import '../lib/extensions.dart';
 
 const boxName = "skyBox";
 Box<SkycordUser> skycordUsers;
+Nyxx bot;
+final log = Logger("skycord");
 
 main() async {
+  setupDefaultLogging();
+
   Hive.registerAdapter(SkycordUserAdapter());
-  if (!await File(boxName).exists())
+  if (!await File(boxName).exists()) {
+    log.info("Existing $boxName not found, initializing now");
     Hive.init(boxName);
+  }
   skycordUsers = await Hive.openBox<SkycordUser>(boxName);
+  log.info("Opened $boxName");
 
-  final bot = NyxxVm(Platform.environment["SKYCORD_DISCORD_TOKEN"], ignoreExceptions: false);
+  bot = NyxxVm(Platform.environment["SKYCORD_DISCORD_TOKEN"], ignoreExceptions: false);
   CommandsFramework(bot, prefix: "s!")..discoverCommands();
-
-  bot.onReady.first.then((event) {
-    print("Bot ready");
-    bot.self.setPresence(game: Presence.of("s!help"));
-  });
+  bot.onReady.first.then((event) => bot.self.setPresence(game: Presence.of("s!help")));
 
   Timer.periodic(Duration(minutes: 30), (t) async {
+    log.info("Grade notification timer ran");
     for (SkycordUser skycordUser in skycordUsers.values.where((user) => user.isSubscribed)) {
-      final newAssignments = await skycordUser.getNewAssignments();
-      if (newAssignments.isNotEmpty) {
-        final skywardUser = await skycordUser.getSkywardUser();
-        final discordUser = await bot.getUser(Snowflake(skycordUser.discordId));
-        for (final assignment in newAssignments) {
-          final embed = await createAssignmentEmbed(assignment, skywardUser);
-          discordUser.send(embed: embed);
+      final discordUser = await skycordUser.getDiscordUser(bot);
+      log.fine("Checking for new grades for ${discordUser.tag} (${skycordUser.key})");
+      try {
+        final newAssignments = await skycordUser.getNewAssignments();
+        if (newAssignments.isNotEmpty) {
+          final skywardUser = await skycordUser.getSkywardUser();
+          for (final assignment in newAssignments) {
+            final embed = await createAssignmentEmbed(assignment, skywardUser);
+            discordUser.send(embed: embed);
+          }
         }
+      } catch (e) {
+        log.severe("Encountered an error checking for new grades", e);
       }
     }
   });
@@ -170,13 +180,16 @@ Future<void> battle(CommandContext ctx) async {
   }
 
   ctx.reply(content: "Do you accept this challenge, ${opponent.mention}? (Y/N)");
-  final opponentResponse = await ctx.nextMessagesBy(opponent, limit: 10)
+  final opponentConsents = await ctx.nextMessagesBy(opponent, limit: 10)
       .map((event) => event.message.content.toUpperCase())
       .firstWhere(
           (content) => content.startsWith(RegExp(r"^[YN]")),
           orElse: () => "N"
-      );
-  if (opponentResponse.startsWith("Y")) {
+      ).then((response) => response.startsWith("Y"))
+      .timeout(Duration(minutes: 1), onTimeout: () {
+          return false;
+      });
+  if (opponentConsents) {
     await ctx.reply(content: "Let the battle begin!");
     ctx.channel.startTyping();
   } else {
@@ -184,9 +197,9 @@ Future<void> battle(CommandContext ctx) async {
     return;
   }
 
-  final authorSkyward = skycordUsers.get(ctx.author.id.id).getSkywardUser();
+  final authorSkywardFuture = skycordUsers.get(ctx.author.id.id).getSkywardUser();
   final opponentSkyward = skycordUsers.get(ctx.author.id.id).getSkywardUser();
-  final authorClassFuture = getRandomHistoricalClass(await authorSkyward);
+  final authorClassFuture = getRandomHistoricalClass(await authorSkywardFuture);
   final opponentClassFuture = getRandomHistoricalClass(await opponentSkyward);
 
   final authorClass = await authorClassFuture;

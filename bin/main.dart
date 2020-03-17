@@ -8,8 +8,8 @@ import 'package:nyxx/nyxx.dart' hide User;
 import 'package:skyscrapeapi/data_types.dart';
 import 'package:skyscrapeapi/sky_core.dart';
 
-import 'extensions.dart';
-import 'skycord_user.dart';
+import '../lib/extensions.dart';
+import '../lib/skycord_user.dart';
 
 const boxName = "skyBox";
 var skycordUsers = Map<String, SkycordUser>();

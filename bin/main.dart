@@ -5,19 +5,19 @@ import 'package:hive/hive.dart';
 import 'package:nyxx/Vm.dart' hide User;
 import 'package:nyxx/commands.dart';
 import 'package:nyxx/nyxx.dart' hide User;
-import 'package:skyscrapeapi/data_types.dart';
-import 'package:skyscrapeapi/sky_core.dart';
+import 'package:skycord/skycord.dart';
+import 'package:skycord/skycord_user.dart';
 
 import '../lib/extensions.dart';
-import '../lib/skycord_user.dart';
 
 const boxName = "skyBox";
-var skycordUsers = Map<String, SkycordUser>();
+Box<SkycordUser> skycordUsers;
 
 main() async {
-//  if (!await File(boxName).exists())
-//    Hive.init(boxName);
-//  skycordUsers = await Hive.openBox<SkycordUser>(boxName);
+  Hive.registerAdapter(SkycordUserAdapter());
+  if (!await File(boxName).exists())
+    Hive.init(boxName);
+  skycordUsers = await Hive.openBox<SkycordUser>(boxName);
 
   final bot = NyxxVm(Platform.environment["SKYCORD_DISCORD_TOKEN"], ignoreExceptions: false);
   CommandsFramework(bot, prefix: "s!")..discoverCommands();
@@ -76,8 +76,7 @@ Future<void> login(CommandContext ctx) async {
   ctx.channel.startTyping();
   try {
     final user = await skycordUser.getSkywardUser();
-    skycordUsers[ctx.author.id.id] = skycordUser;
-//    skycordUsers.put(ctx.author.id.id, skycordUser);
+    skycordUsers.put(ctx.author.id.id, skycordUser);
     ctx.channel.send(content: "Logged in as " + await user.getName());
   } catch (error) {
     ctx.channel.send(content: "Login failed");
@@ -100,8 +99,7 @@ Future<void> oldLogin(CommandContext ctx) async {
 
   try {
     final user = await skycordUser.getSkywardUser();
-    skycordUsers[ctx.author.id.id] = skycordUser;
-//    skycordUsers.put(ctx.author.id.id, skycordUser);
+    skycordUsers.put(ctx.author.id.id, skycordUser);
     ctx.reply(content: "Logged in as " + await user.getName());
   } catch (error) {
     ctx.reply(content: "Login failed");
@@ -111,7 +109,9 @@ Future<void> oldLogin(CommandContext ctx) async {
 @Command("subscribe")
 Future<void> subscribe(CommandContext ctx) async {
   if (skycordUsers.containsKey(ctx.author.id.id)) {
-    skycordUsers[ctx.author.id.id]..isSubscribed = true;
+    final skycordUser = skycordUsers.get(ctx.author.id.id);
+    skycordUser..isSubscribed = true;
+    skycordUser.save();
     ctx.reply(content: "Subscribed to grade notifications");
   } else {
     ctx.reply(content: "Not yet registered");
@@ -121,7 +121,9 @@ Future<void> subscribe(CommandContext ctx) async {
 @Command("unsubscribe")
 Future<void> unsubscribe(CommandContext ctx) async {
   if (skycordUsers.containsKey(ctx.author.id.id)) {
-    skycordUsers[ctx.author.id.id]..isSubscribed = false;
+    final skycordUser = skycordUsers.get(ctx.author.id.id);
+    skycordUser..isSubscribed = false;
+    skycordUser.save();
     ctx.reply(content: "Unsubscribed from grade notifications");
   } else {
     ctx.reply(content: "Not yet registered");
@@ -131,8 +133,7 @@ Future<void> unsubscribe(CommandContext ctx) async {
 @Command("roulette", typing: true)
 Future<void> roulette(CommandContext ctx) async {
   if (skycordUsers.containsKey(ctx.author.id.id)) {
-    final skycordUser = skycordUsers[ctx.author.id.id];
-//    final skycordUser = skycordUsers.get(ctx.author.id.id);
+    final skycordUser = skycordUsers.get(ctx.author.id.id);
     final user = await skycordUser.getSkywardUser();
     final gradebook = await user.getGradebook();
     final assignments = await gradebook.quickAssignments;
@@ -158,51 +159,38 @@ Future<void> battle(CommandContext ctx) async {
     ctx.reply(content: "You need to mention another user");
     return;
   }
-
   final opponent = ctx.message.mentions.values.first;
   if (ctx.author == opponent) {
     ctx.reply(content: "You can't battle yourself");
     return;
   }
-  if (!skycordUsers.containsKey(opponent.id)) {
+  if (!skycordUsers.containsKey(opponent.id.id)) {
     ctx.reply(content: opponent.mention + " hasn't registered with skycord");
     return;
   }
+
   ctx.reply(content: "Do you accept this challenge, ${opponent.mention}? (Y/N)");
-  final opponentConsents = await ctx.nextMessagesBy(opponent, limit: 10)
+  final opponentResponse = await ctx.nextMessagesBy(opponent, limit: 10)
       .map((event) => event.message.content.toUpperCase())
       .firstWhere(
           (content) => content.startsWith(RegExp(r"^[YN]")),
           orElse: () => "N"
-      ).then((response) => response.startsWith("Y"));
-  if (opponentConsents) {
+      );
+  if (opponentResponse.startsWith("Y")) {
     await ctx.reply(content: "Let the battle begin!");
     ctx.channel.startTyping();
   } else {
     ctx.reply(content: opponent.mention + " declined to battle");
     return;
   }
-  final authorHistory = await skycordUsers[ctx.author.id.id].getSkywardUser()
-      .then((skywardAuthor) => skywardAuthor.getHistory());
-//  final authorHistory = await skycordUsers.get(ctx.author.id.id).getSkywardUser()
-//      .then((skywardAuthor) => skywardAuthor.getHistory());
-  final opponentHistory = await skycordUsers[opponent.id.id].getSkywardUser()
-      .then((skywardAuthor) => skywardAuthor.getHistory());
-//  final opponentHistory = await skycordUsers(opponent.id.id).getSkywardUser()
-//      .then((skywardAuthor) => skywardAuthor.getHistory());
-  final authorClasses = authorHistory.take(authorHistory.length - 1)
-      .expand((schoolYear) => schoolYear.classes)
-      .where((histClass) => int.tryParse(histClass.grades.last) != null);
-  final opponentClasses = opponentHistory.take(authorHistory.length - 1)
-      .expand((schoolYear) => schoolYear.classes)
-      .where((histClass) => int.tryParse(histClass.grades.last) != null);
-  // Original idea was to find common classes - too many naming discrepancies
-  //  final commonClasses = authorClasses.where(
-  //          (histClass) =>
-  //              opponentClasses.map((cls) => cls.name).contains(histClass.name)
-  //  );
-  final authorClass = authorClasses.random();
-  final opponentClass = opponentClasses.random();
+
+  final authorSkyward = skycordUsers.get(ctx.author.id.id).getSkywardUser();
+  final opponentSkyward = skycordUsers.get(ctx.author.id.id).getSkywardUser();
+  final authorClassFuture = getRandomHistoricalClass(await authorSkyward);
+  final opponentClassFuture = getRandomHistoricalClass(await opponentSkyward);
+
+  final authorClass = await authorClassFuture;
+  final opponentClass = await opponentClassFuture;
   final authorGrade = int.parse(authorClass.grades.last);
   final opponentGrade = int.parse(opponentClass.grades.last);
 
@@ -235,29 +223,4 @@ Future<void> battle(CommandContext ctx) async {
         " wins over $loser's grade of $loserGrade in $loserClass"
     );
   }
-}
-
-Future<EmbedBuilder> createAssignmentEmbed(Assignment assignment, User user) async {
-  final assignmentDetails = await user.getAssignmentDetailsFrom(assignment);
-  final skywardName = await user.getName();
-
-  final embed = EmbedBuilder()
-    ..title = "${assignment.name} (${assignment.getIntGrade() ?? "Empty"})"
-    ..description
-    ..timestamp = DateTime.now().toUtc()
-    ..addAuthor((author)  {
-      author.name = skywardName;
-//      author.iconUrl = ctx.author.avatarURL(); TODO: Set to student picture
-    })
-    ..addFooter((footer) { // TODO: Add icon
-      footer.text = "Powered by SkyScrapeAPI";
-    });
-  for (AssignmentProperty property in assignmentDetails) {
-    embed.addField(
-        name: property.infoName,
-        content: property.info.isNullOrBlank() ? "Empty" : property.info, inline: true
-    );
-  }
-
-  return embed;
 }

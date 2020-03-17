@@ -4,9 +4,9 @@ import 'package:skyscrapeapi/sky_core.dart';
 
 import 'extensions.dart';
 
-//part 'skycord_user.g.dart';
+part 'skycord_user.g.dart';
 
-@HiveType()
+@HiveType(typeId: 0)
 class SkycordUser extends HiveObject {
   @HiveField(0)
   String discordId;

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:nyxx/commands.dart';
 import 'package:nyxx/nyxx.dart';
+import 'package:skyscrapeapi/data_types.dart';
 
 extension TextUtils on String {
   bool isNullOrBlank() {
@@ -26,5 +27,11 @@ extension ContextUtils on CommandContext {
 
   Future<MessageReceivedEvent> nextMessageByAuthor() {
     return nextMessageBy(author);
+  }
+}
+
+extension AssignmentUtils on Assignment {
+  bool isNotGraded() {
+    return attributes["grade"] == null;
   }
 }

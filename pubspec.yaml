@@ -3,4 +3,10 @@ name: skycord
 dependencies:
   nyxx:
     git: git://github.com/l7ssha/nyxx.git
-  skyscrapeapi: ^3.0.0+8
+  skyscrapeapi:
+    git: https://github.com/ClearHall/SkyScrapeAPI
+  hive: ^1.4.1+1
+
+dev_dependencies:
+  hive_generator: ^0.7.0+2
+  build_runner: ^1.8.0

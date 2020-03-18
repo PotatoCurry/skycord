@@ -32,13 +32,15 @@ main() async {
   bot.onReady.first.then((event) => bot.self.setPresence(game: Presence.of("s!help")));
 
   Timer.periodic(Duration(minutes: 30), (t) async {
-    log.info("Grade notification timer ran");
+    log.fine("Grade notification timer ran");
     for (SkycordUser skycordUser in skycordUsers.values.where((user) => user.isSubscribed)) {
       final discordUser = await skycordUser.getDiscordUser(bot);
-      log.fine("Checking for new grades for ${discordUser.tag} (${skycordUser.key})");
+      final userInfo = "${discordUser.tag} (${skycordUser.key})";
+      log.finer("Checking for new grades for $userInfo");
       try {
         final newAssignments = await skycordUser.getNewAssignments();
         if (newAssignments.isNotEmpty) {
+          log.finer("Detected ${newAssignments.length} new grades for $userInfo");
           final skywardUser = await skycordUser.getSkywardUser();
           for (final assignment in newAssignments) {
             final embed = await createAssignmentEmbed(assignment, skywardUser);

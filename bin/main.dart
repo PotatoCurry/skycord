@@ -27,7 +27,7 @@ main() async {
   skycordUsers = await Hive.openBox<SkycordUser>(boxName);
   log.info("Opened $boxName");
 
-  bot = NyxxVm(Platform.environment["SKYCORD_DISCORD_TOKEN"], ignoreExceptions: false);
+  bot = NyxxVm(Platform.environment["SKYCORD_DISCORD_TOKEN"]);
   CommandsFramework(bot, prefix: "s!")..discoverCommands();
   bot.onReady.first.then((event) => bot.self.setPresence(game: Presence.of("s!help")));
 

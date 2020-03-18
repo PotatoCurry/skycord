@@ -9,7 +9,7 @@ Future<EmbedBuilder> createAssignmentEmbed(Assignment assignment, User user) asy
   final skywardName = await user.getName();
 
   final embed = EmbedBuilder()
-    ..title = "${assignment.name} (${assignment.getIntGrade() ?? "Empty"})"
+    ..title = "${assignment.assignmentName} (${assignment.getIntGrade() ?? "Empty"})"
     ..description
     ..timestamp = DateTime.now().toUtc()
     ..addAuthor((author)  {

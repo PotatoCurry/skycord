@@ -211,14 +211,14 @@ Future<void> battle(CommandContext ctx) async {
 
   var winner, winnerClass, winnerGrade;
   var loser, loserClass, loserGrade;
-  if (authorGrade >= opponentGrade) {
+  if (authorGrade > opponentGrade) {
     winner = ctx.author.mention;
     winnerClass = authorClass.name;
     winnerGrade = authorGrade;
     loser = opponent.mention;
     loserClass = opponentClass.name;
     loserGrade = opponentGrade;
-  } else if (authorGrade < opponentGrade) {
+  } else {
     winner = opponent.mention;
     winnerClass = opponentClass.name;
     winnerGrade = opponentGrade;

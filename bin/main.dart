@@ -200,7 +200,7 @@ Future<void> battle(CommandContext ctx) async {
   }
 
   final authorSkywardFuture = skycordUsers.get(ctx.author.id.id).getSkywardUser();
-  final opponentSkyward = skycordUsers.get(ctx.author.id.id).getSkywardUser();
+  final opponentSkyward = skycordUsers.get(opponent.id.id).getSkywardUser();
   final authorClassFuture = getRandomHistoricalClass(await authorSkywardFuture);
   final opponentClassFuture = getRandomHistoricalClass(await opponentSkyward);
 

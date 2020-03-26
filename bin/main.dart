@@ -20,10 +20,8 @@ main() async {
   setupDefaultLogging();
 
   Hive.registerAdapter(SkycordUserAdapter());
-  if (!await File(boxName).exists()) {
-    log.info("Existing $boxName not found, initializing now");
-    Hive.init(boxName);
-  }
+  log.info("Initializing $boxName");
+  Hive.init(boxName);
   skycordUsers = await Hive.openBox<SkycordUser>(boxName);
   log.info("Opened $boxName");
 
@@ -48,7 +46,7 @@ main() async {
           }
         }
       } catch (e) {
-        log.severe("Encountered an error checking for new grades", e);
+        log.severe("Encountered an error checking for new grades for $userInfo", e);
       }
     }
   });

@@ -5,8 +5,12 @@ import 'package:nyxx/nyxx.dart';
 import 'package:skyscrapeapi/data_types.dart';
 
 extension TextUtils on String {
-  bool isNullOrBlank() {
-    return this == null || this.trim().isEmpty;
+  bool isBlank() {
+    return trim().isEmpty;
+  }
+
+  bool isNotBlank() {
+    return !isBlank();
   }
 }
 

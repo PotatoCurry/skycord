@@ -41,7 +41,7 @@ main() async {
           log.finer("Detected ${newAssignments.length} new grades for $userInfo");
           final skywardUser = await skycordUser.getSkywardUser();
           for (final assignment in newAssignments) {
-            final embed = await createAssignmentEmbed(assignment, skywardUser);
+            final embed = await createAssignmentEmbed(assignment, skywardUser, discordUser);
             discordUser.send(embed: embed);
           }
         }
@@ -59,7 +59,7 @@ Future<void> help(CommandContext ctx) async {
       "s!oldlogin [skyward url] [username] [password] - Login to skycord\n"
       "s!subscribe - Subscribe to grade notifications\n"
       "s!unsubscribe - Unsubscribe from grade notifications\n"
-      "s!roulette - Display a random assignment\n"
+      "s!roulette (tiny) - Display a random assignment\n"
       "s!battle [opponent] - Battle another user on the basis of random class grades"
   );
 }
@@ -143,12 +143,13 @@ Future<void> unsubscribe(CommandContext ctx) async {
 @Command("roulette", typing: true)
 Future<void> roulette(CommandContext ctx) async {
   if (skycordUsers.containsKey(ctx.author.id.id)) {
+    final tiny = ctx.message.content.toLowerCase().contains("tiny");
     final skycordUser = skycordUsers.get(ctx.author.id.id);
     final user = await skycordUser.getSkywardUser();
     final gradebook = await user.getGradebook();
     final assignments = await gradebook.quickAssignments;
     final assignment = await assignments.random();
-    final embed = await createAssignmentEmbed(assignment, user);
+    final embed = await createAssignmentEmbed(assignment, user, ctx.author, tiny: tiny);
     ctx.reply(embed: embed);
   } else {
     ctx.reply(content: "Not yet registered");

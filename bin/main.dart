@@ -49,6 +49,7 @@ main() async {
         log.severe("Encountered an error checking for new grades for $userInfo", e);
       }
     }
+    log.fine("Grade notification timer finished");
   });
 }
 

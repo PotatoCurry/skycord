@@ -27,6 +27,8 @@ class SkycordUser extends HiveObject {
 
   List<Assignment> previousEmptyAssignments = List();
 
+  Map<String, Assignment> previousRecentAssignments = Map();
+
   Future<Nyxx.User> getDiscordUser(Nyxx.Nyxx bot) async {
     return bot.getUser(Nyxx.Snowflake(key));
   }
@@ -37,15 +39,37 @@ class SkycordUser extends HiveObject {
 
   Future<List<Assignment>> getNewAssignments() async {
     final skywardUser = await getSkywardUser();
-    final gradebook = await skywardUser.getGradebook();
-    final emptyAssignments = gradebook.quickAssignments
+    final assignments = (await skywardUser.getGradebook()).quickAssignments;
+    return getNewlyFilledAssignments(assignments) + getNewlyEnteredAssignments(assignments);
+  }
+
+  List<Assignment> getNewlyFilledAssignments(List<Assignment> assignments) {
+    final emptyAssignments = assignments
         .where((assignment) => assignment.isNotGraded())
         .toList();
-
     final newAssignments = previousEmptyAssignments
         .where((assignment) => !emptyAssignments.contains(assignment))
         .toList();
     previousEmptyAssignments = emptyAssignments;
+    return newAssignments;
+  }
+
+  List<Assignment> getNewlyEnteredAssignments(List<Assignment> assignments) {
+    Map<String, List<Assignment>> assignmentsByClass = Map();
+    for (final assignment in assignments) {
+      assignmentsByClass.putIfAbsent(assignment.courseID, () => List());
+      assignmentsByClass[assignment.courseID]
+        ..add(assignment);
+    }
+    final newAssignments = List<Assignment>();
+    for (final recentGrade in previousRecentAssignments.entries) {
+      final classAssignments = assignmentsByClass[recentGrade.key];
+      final newClassAssignments = classAssignments
+          .sublist(classAssignments.indexOf(recentGrade.value) + 1);
+      newAssignments.addAll(newClassAssignments);
+    }
+    previousRecentAssignments = assignmentsByClass
+        .map((courseId, assignments) => MapEntry(courseId, assignments.last));
     return newAssignments;
   }
 }

@@ -58,7 +58,7 @@ Future<void> help(CommandContext ctx) async {
   ctx.reply(content: "s!help - Display a help message\n"
       "s!login - Interactive login\n"
       "s!oldlogin [skyward url] [username] [password] - Login to skycord\n"
-      "s!logout - Logout from skycord"
+      "s!logout - Logout from skycord\n"
       "s!subscribe - Subscribe to grade notifications\n"
       "s!unsubscribe - Unsubscribe from grade notifications\n"
       "s!roulette (tiny) - Display a random assignment\n"

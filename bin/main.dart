@@ -58,6 +58,7 @@ Future<void> help(CommandContext ctx) async {
   ctx.reply(content: "s!help - Display a help message\n"
       "s!login - Interactive login (Does not work in DMs)\n"
       "s!oldlogin [skyward url] [username] [password] - Login to skycord\n"
+      "s!logout - Logout from skycord"
       "s!subscribe - Subscribe to grade notifications\n"
       "s!unsubscribe - Unsubscribe from grade notifications\n"
       "s!roulette (tiny) - Display a random assignment\n"
@@ -114,6 +115,17 @@ Future<void> oldLogin(CommandContext ctx) async {
     ctx.reply(content: "Logged in as " + await user.getName());
   } catch (error) {
     ctx.reply(content: "Login failed");
+  }
+}
+
+@Command("logout")
+Future<void> logout(CommandContext ctx) async {
+  if (skycordUsers.containsKey(ctx.author.id.id)) {
+    final skycordUser = skycordUsers.get(ctx.author.id.id);
+    skycordUser.delete();
+    ctx.reply(content: "Logged out");
+  } else {
+    ctx.reply(content: "Not registered");
   }
 }
 

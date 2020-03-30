@@ -35,8 +35,9 @@ Future<Nyxx.EmbedBuilder> createAssignmentEmbed(Assignment assignment, User skyw
       );
   }
 
-  if (skywardInfo.studentAttributes.containsKey("Student Image Href Link"))
-    embed.thumbnailUrl = skywardInfo.studentAttributes["Student Image Href Link"];
+  const imageAttribute = "Student Image Href Link";
+  if (skywardInfo.studentAttributes.containsKey(imageAttribute))
+    embed.thumbnailUrl = skywardInfo.studentAttributes[imageAttribute];
 
   return embed;
 }

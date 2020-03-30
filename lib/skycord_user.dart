@@ -12,49 +12,62 @@ class SkycordUser extends HiveObject {
   // Hive field 0 was intended to store Discord IDs, but was never used
 
   @HiveField(1)
-  String skywardUrl;
+  String _skywardUrl;
 
   @HiveField(2)
-  String username;
+  String _username;
 
   @HiveField(3)
-  String password;
+  String _password;
 
   @HiveField(4)
-  bool isSubscribed = false;
+  bool isSubscribed;
 
-  User skywardUser;
+  SkycordUser(
+      this._skywardUrl,
+      this._username,
+      this._password,
+      {this.isSubscribed = false}
+  );
 
-  List<Assignment> previousEmptyAssignments = List();
+  User _skywardUser;
 
-  Map<String, Assignment> previousRecentAssignments = Map();
+  List<Assignment> _previousEmptyAssignments = List();
+
+  Map<String, Assignment> _previousRecentAssignments = Map();
 
   Future<Nyxx.User> getDiscordUser(Nyxx.Nyxx bot) async {
     return bot.getUser(Nyxx.Snowflake(key));
   }
 
   Future<User> getSkywardUser() async {
-    return skywardUser ??= await SkyCore.login(username, password, skywardUrl);
+    return _skywardUser ??= await SkyCore.login(
+        _username,
+        _password,
+        _skywardUrl
+    );
   }
 
   Future<List<Assignment>> getNewAssignments() async {
     final skywardUser = await getSkywardUser();
     final assignments = (await skywardUser.getGradebook()).quickAssignments;
-    return getNewlyFilledAssignments(assignments) + getNewlyEnteredAssignments(assignments);
+    final newlyFilledAssignments = _getNewlyFilledAssignments(assignments);
+    final newlyEnteredAssignments = _getNewlyEnteredAssignments(assignments);
+    return newlyFilledAssignments + newlyEnteredAssignments;
   }
 
-  List<Assignment> getNewlyFilledAssignments(List<Assignment> assignments) {
+  List<Assignment> _getNewlyFilledAssignments(List<Assignment> assignments) {
     final emptyAssignments = assignments
         .where((assignment) => assignment.isNotGraded())
         .toList();
-    final newAssignments = previousEmptyAssignments
+    final newAssignments = _previousEmptyAssignments
         .where((assignment) => !emptyAssignments.contains(assignment))
         .toList();
-    previousEmptyAssignments = emptyAssignments;
+    _previousEmptyAssignments = emptyAssignments;
     return newAssignments;
   }
 
-  List<Assignment> getNewlyEnteredAssignments(List<Assignment> assignments) {
+  List<Assignment> _getNewlyEnteredAssignments(List<Assignment> assignments) {
     Map<String, List<Assignment>> assignmentsByClass = Map();
     for (final assignment in assignments) {
       assignmentsByClass.putIfAbsent(assignment.courseID, () => List());
@@ -62,13 +75,13 @@ class SkycordUser extends HiveObject {
         ..add(assignment);
     }
     final newAssignments = List<Assignment>();
-    for (final recentGrade in previousRecentAssignments.entries) {
+    for (final recentGrade in _previousRecentAssignments.entries) {
       final classAssignments = assignmentsByClass[recentGrade.key];
       final newClassAssignments = classAssignments
           .sublist(classAssignments.indexOf(recentGrade.value) + 1);
       newAssignments.addAll(newClassAssignments);
     }
-    previousRecentAssignments = assignmentsByClass
+    _previousRecentAssignments = assignmentsByClass
         .map((courseId, assignments) => MapEntry(courseId, assignments.last));
     return newAssignments;
   }

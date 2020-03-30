@@ -16,11 +16,12 @@ class SkycordUserAdapter extends TypeAdapter<SkycordUser> {
     var fields = <int, dynamic>{
       for (var i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return SkycordUser()
-      ..skywardUrl = fields[1] as String
-      ..username = fields[2] as String
-      ..password = fields[3] as String
-      ..isSubscribed = fields[4] as bool;
+    return SkycordUser(
+      fields[1] as String,
+      fields[2] as String,
+      fields[3] as String,
+      isSubscribed: fields[4] as bool,
+    );
   }
 
   @override
@@ -28,11 +29,11 @@ class SkycordUserAdapter extends TypeAdapter<SkycordUser> {
     writer
       ..writeByte(4)
       ..writeByte(1)
-      ..write(obj.skywardUrl)
+      ..write(obj._skywardUrl)
       ..writeByte(2)
-      ..write(obj.username)
+      ..write(obj._username)
       ..writeByte(3)
-      ..write(obj.password)
+      ..write(obj._password)
       ..writeByte(4)
       ..write(obj.isSubscribed);
   }

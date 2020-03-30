@@ -38,7 +38,7 @@ main() async {
       try {
         final newAssignments = await skycordUser.getNewAssignments();
         if (newAssignments.isNotEmpty) {
-          log.finer("Detected ${newAssignments.length} new grades for $userInfo");
+          log.finer("Detected ${newAssignments.length} new assignments for $userInfo");
           final skywardUser = await skycordUser.getSkywardUser();
           for (final assignment in newAssignments) {
             final embed = await createAssignmentEmbed(assignment, skywardUser, discordUser);
@@ -47,6 +47,7 @@ main() async {
         }
       } catch (e) {
         log.severe("Encountered an error checking for new grades for $userInfo", e);
+        print(e);
       }
     }
     log.fine("Grade notification timer finished");
@@ -81,10 +82,7 @@ Future<void> login(CommandContext ctx) async {
   final username = (await ctx.nextMessageByAuthor()).message.content;
   ctx.reply(content: "Password?");
   final password = (await ctx.nextMessageByAuthor()).message.content;
-  final skycordUser = SkycordUser()
-    ..skywardUrl = skywardUrl
-    ..username = username
-    ..password = password;
+  final skycordUser = SkycordUser(skywardUrl, username, password);
 
   await ctx.channel.send(content: "Validating credentials...");
   ctx.channel.startTyping();
@@ -106,10 +104,11 @@ Future<void> oldLogin(CommandContext ctx) async {
   }
   await ctx.reply(content: "Validating credentials...");
   ctx.channel.startTyping();
-  final skycordUser = SkycordUser()
-    ..skywardUrl = splitContent[1]
-    ..username = splitContent[2]
-    ..password = splitContent[3];
+  final skycordUser = SkycordUser(
+      splitContent[1],
+      splitContent[2],
+      splitContent[3]
+  );
 
   try {
     final user = await skycordUser.getSkywardUser();

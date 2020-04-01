@@ -8,6 +8,7 @@ import 'package:nyxx/commands.dart';
 import 'package:nyxx/nyxx.dart' hide User;
 import 'package:skycord/skycord.dart';
 import 'package:skycord/skycord_user.dart';
+import 'package:skyscrapeapi/data_types.dart';
 
 import '../lib/extensions.dart';
 
@@ -162,7 +163,11 @@ Future<void> roulette(CommandContext ctx) async {
     final user = await skycordUser.getSkywardUser();
     final gradebook = await user.getGradebook();
     final assignments = await gradebook.quickAssignments;
-    final assignment = await assignments.random();
+    
+    Assignment assignment;
+    do {
+      assignment = await assignments.random();
+    } while (assignment.getIntGrade() != null);
     final embed = await createAssignmentEmbed(assignment, user, ctx.author, tiny: tiny);
     ctx.reply(embed: embed);
   } else {

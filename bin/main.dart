@@ -167,7 +167,7 @@ Future<void> roulette(CommandContext ctx) async {
     Assignment assignment;
     do {
       assignment = await assignments.random();
-    } while (assignment.getIntGrade() != null);
+    } while (assignment.getIntGrade() == null);
     final embed = await createAssignmentEmbed(assignment, user, ctx.author, tiny: tiny);
     ctx.reply(embed: embed);
   } else {

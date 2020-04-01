@@ -63,14 +63,14 @@ packages:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.0"
+    version: "1.8.1"
   build_runner_core:
     dependency: transitive
     description:
       name: build_runner_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.5.3"
+    version: "5.0.0"
   built_collection:
     dependency: transitive
     description:
@@ -252,7 +252,7 @@ packages:
       name: intl
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.15.8"
+    version: "0.16.1"
   io:
     dependency: transitive
     description:
@@ -515,7 +515,7 @@ packages:
       name: w_common
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.20.1"
+    version: "1.20.2"
   w_transport:
     dependency: transitive
     description:

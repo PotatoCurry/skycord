@@ -17,7 +17,7 @@ Future<Nyxx.EmbedBuilder> createAssignmentEmbed(Assignment assignment, User skyw
       author.iconUrl = discordUser.avatarURL();
     })
     ..addFooter((footer) {
-      footer.text = "Powered by SkyScrapeAPI";
+      footer.text = assignment.assignmentID;
       footer.iconUrl = "https://clearhall.dev/assets/img/skymobile_icon.png";
     });
   if (tiny) {

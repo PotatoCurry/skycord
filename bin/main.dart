@@ -155,6 +155,44 @@ Future<void> unsubscribe(CommandContext ctx) async {
   }
 }
 
+@Command("search", typing: true)
+Future<void> search(CommandContext ctx) async {
+  final args = ctx.message.content.split(" ")..removeAt(0);
+  if (args.isEmpty) {
+    ctx.reply(content: "No search query given");
+    return;
+  }
+  final query = args.join(" ");
+
+  final skycordUser = skycordUsers.get(ctx.author.id.id);
+  final user = await skycordUser.getSkywardUser();
+  final gradebook = await user.getGradebook();
+  final assignments = await gradebook.quickAssignments;
+
+  final assignmentID = int.tryParse(query);
+  List<Assignment> matchingAssignments;
+  if (assignmentID != null)
+    matchingAssignments = assignments.where((assignment) =>
+        assignment.assignmentID == assignmentID
+    );
+  else
+    matchingAssignments = assignments.where((assignment) =>
+        assignment.name.contains(RegExp(query, caseSensitive: false))
+    );
+  if (matchingAssignments.isEmpty) {
+    ctx.reply(content: "No matching assignments found");
+    return;
+  }
+
+  final embed = await createAssignmentEmbed(
+      matchingAssignments.random(),
+      user,
+      ctx.author,
+      tiny: true
+  );
+  ctx.reply(embed: embed);
+}
+
 @Command("roulette", typing: true)
 Future<void> roulette(CommandContext ctx) async {
   if (skycordUsers.containsKey(ctx.author.id.id)) {
@@ -163,12 +201,17 @@ Future<void> roulette(CommandContext ctx) async {
     final user = await skycordUser.getSkywardUser();
     final gradebook = await user.getGradebook();
     final assignments = await gradebook.quickAssignments;
-    
+
     Assignment assignment;
     do {
       assignment = await assignments.random();
     } while (assignment.getIntGrade() == null);
-    final embed = await createAssignmentEmbed(assignment, user, ctx.author, tiny: tiny);
+    final embed = await createAssignmentEmbed(
+        assignment,
+        user,
+        ctx.author,
+        tiny: tiny
+    );
     ctx.reply(embed: embed);
   } else {
     ctx.reply(content: "Not yet registered");

@@ -173,7 +173,7 @@ Future<void> search(CommandContext ctx) async {
   Iterable<Assignment> matchingAssignments;
   if (assignmentID != null)
     matchingAssignments = assignments.where((assignment) =>
-        assignment.assignmentID == assignmentID
+        query == assignment.assignmentID
     );
   else
     matchingAssignments = assignments.where((assignment) =>

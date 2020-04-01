@@ -170,7 +170,7 @@ Future<void> search(CommandContext ctx) async {
   final assignments = await gradebook.quickAssignments;
 
   final assignmentID = int.tryParse(query);
-  List<Assignment> matchingAssignments;
+  Iterable<Assignment> matchingAssignments;
   if (assignmentID != null)
     matchingAssignments = assignments.where((assignment) =>
         assignment.assignmentID == assignmentID

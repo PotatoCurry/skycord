@@ -63,6 +63,7 @@ Future<void> help(CommandContext ctx) async {
       "s!logout - Logout from skycord\n"
       "s!subscribe - Subscribe to grade notifications\n"
       "s!unsubscribe - Unsubscribe from grade notifications\n"
+      "s!search [query] - Search by assignment name or ID\n"
       "s!roulette (tiny) - Display a random assignment\n"
       "s!battle [opponent] - Battle another user on the basis of random class grades\n"
       "\n"
@@ -179,11 +180,11 @@ Future<void> search(CommandContext ctx) async {
     matchingAssignments = assignments.where((assignment) =>
         assignment.name.contains(RegExp(query, caseSensitive: false))
     );
+
   if (matchingAssignments.isEmpty) {
     ctx.reply(content: "No matching assignments found");
     return;
   }
-
   final embed = await createAssignmentEmbed(
       matchingAssignments.random(),
       user,

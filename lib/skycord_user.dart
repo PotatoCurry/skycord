@@ -50,7 +50,8 @@ class SkycordUser extends HiveObject {
 
   Future<List<Assignment>> getNewAssignments() async {
     final skywardUser = await getSkywardUser();
-    final assignments = (await skywardUser.getGradebook()).quickAssignments;
+    final gradebook = await skywardUser.getGradebook();
+    final assignments = gradebook.expand((gb) => gb.quickAssignments);
     final newlyFilledAssignments = _getNewlyFilledAssignments(assignments);
     final newlyEnteredAssignments = _getNewlyEnteredAssignments(assignments);
     return newlyFilledAssignments + newlyEnteredAssignments;

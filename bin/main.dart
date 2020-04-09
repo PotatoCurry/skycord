@@ -168,7 +168,7 @@ Future<void> search(CommandContext ctx) async {
   final skycordUser = skycordUsers.get(ctx.author.id.id);
   final user = await skycordUser.getSkywardUser();
   final gradebook = await user.getGradebook();
-  final assignments = await gradebook.expand((gb) => gb.quickAssignments);
+  final assignments = gradebook.getAllQuickAssignments();
 
   final assignmentID = int.tryParse(query);
   Iterable<Assignment> matchingAssignments;
@@ -201,7 +201,7 @@ Future<void> roulette(CommandContext ctx) async {
     final skycordUser = skycordUsers.get(ctx.author.id.id);
     final user = await skycordUser.getSkywardUser();
     final gradebook = await user.getGradebook();
-    final assignments = await gradebook.expand((gb) => gb.quickAssignments);
+    final assignments = gradebook.getAllQuickAssignments();
 
     Assignment assignment;
     do {

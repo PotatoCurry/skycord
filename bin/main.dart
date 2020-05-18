@@ -8,7 +8,7 @@ import 'package:nyxx/commands.dart';
 import 'package:nyxx/nyxx.dart' hide User;
 import 'package:skycord/skycord.dart';
 import 'package:skycord/skycord_user.dart';
-import 'package:skyscrapeapi/data_types.dart';
+import 'package:skyscrapeapi/sky_core.dart';
 
 import '../lib/extensions.dart';
 
@@ -64,7 +64,7 @@ Future<void> help(CommandContext ctx) async {
       "s!subscribe - Subscribe to grade notifications\n"
       "s!unsubscribe - Unsubscribe from grade notifications\n"
       "s!search [query] - Search by assignment name or ID\n"
-      "s!roulette (tiny) - Display a random assignment\n"
+      "s!roulette (period) (tiny) - Display a random assignment\n"
       "s!battle [opponent] - Battle another user on the basis of random class grades\n"
       "\n"
       "Note: s!login is currently broken in direct messages, **use s!oldlogin instead**"
@@ -168,7 +168,7 @@ Future<void> search(CommandContext ctx) async {
   final skycordUser = skycordUsers.get(ctx.author.id.id);
   final user = await skycordUser.getSkywardUser();
   final gradebook = await user.getGradebook();
-  final assignments = gradebook.getAllQuickAssignments();
+  final assignments = gradebook.getAllAssignments();
 
   final assignmentID = int.tryParse(query);
   Iterable<Assignment> matchingAssignments;
@@ -197,15 +197,28 @@ Future<void> search(CommandContext ctx) async {
 @Command("roulette", typing: true)
 Future<void> roulette(CommandContext ctx) async {
   if (skycordUsers.containsKey(ctx.author.id.id)) {
+    final rawPeriod = RegExp(r"\d+").firstMatch(ctx.message.content)?.group(0);
     final tiny = ctx.message.content.toLowerCase().contains("tiny");
     final skycordUser = skycordUsers.get(ctx.author.id.id);
     final user = await skycordUser.getSkywardUser();
     final gradebook = await user.getGradebook();
-    final assignments = gradebook.getAllQuickAssignments();
+    final assignments = gradebook.getAllAssignments();
+
+    if (rawPeriod != null) {
+      final classes = gradebook.getAllClasses();
+      final period = int.parse(rawPeriod) - 1;
+      if (period < 0 || period >= classes.length) {
+        ctx.reply(content: "Invalid period");
+        return;
+      }
+
+      assignments.retainWhere((assignment) =>
+        assignment.getClass(gradebook) == classes[period]);
+    }
 
     Assignment assignment;
     do {
-      assignment = await assignments.random();
+      assignment = assignments.random();
     } while (assignment.getIntGrade() == null);
     final embed = await createAssignmentEmbed(
         assignment,

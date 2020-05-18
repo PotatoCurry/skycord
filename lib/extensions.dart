@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:nyxx/commands.dart';
 import 'package:nyxx/nyxx.dart';
-import 'package:skyscrapeapi/data_types.dart';
+import 'package:skyscrapeapi/sky_core.dart' hide User;
 
 extension TextUtils on String {
   bool isBlank() {

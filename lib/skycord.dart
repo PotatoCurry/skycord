@@ -1,5 +1,4 @@
 import 'package:nyxx/nyxx.dart' as Nyxx;
-import 'package:skyscrapeapi/data_types.dart';
 import 'package:skyscrapeapi/sky_core.dart';
 
 import 'extensions.dart';

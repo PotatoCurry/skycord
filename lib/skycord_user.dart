@@ -1,6 +1,5 @@
 import 'package:hive/hive.dart';
 import 'package:nyxx/nyxx.dart' as Nyxx;
-import 'package:skyscrapeapi/data_types.dart';
 import 'package:skyscrapeapi/sky_core.dart';
 
 import 'extensions.dart';
@@ -51,7 +50,7 @@ class SkycordUser extends HiveObject {
   Future<List<Assignment>> getNewAssignments() async {
     final skywardUser = await getSkywardUser();
     final gradebook = await skywardUser.getGradebook();
-    final assignments = gradebook.getAllQuickAssignments();
+    final assignments = gradebook.getAllAssignments();
     final newlyFilledAssignments = _getNewlyFilledAssignments(assignments);
     final newlyEnteredAssignments = _getNewlyEnteredAssignments(assignments);
     return newlyFilledAssignments + newlyEnteredAssignments;

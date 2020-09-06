@@ -26,14 +26,14 @@ class SkycordUser extends HiveObject {
       this._skywardUrl,
       this._username,
       this._password,
-      {this.isSubscribed = false}
+      {this.isSubscribed = true}
   );
 
   User _skywardUser;
 
-  List<Assignment> _previousEmptyAssignments = List();
+  List<Assignment> _previousAssignments;
 
-  Map<String, Assignment> _previousRecentAssignments = Map();
+  List<Assignment> _previousEmptyAssignments = List();
 
   Future<Nyxx.User> getDiscordUser(Nyxx.Nyxx bot) async {
     return bot.getUser(Nyxx.Snowflake(key));
@@ -49,40 +49,33 @@ class SkycordUser extends HiveObject {
 
   Future<List<Assignment>> getNewAssignments() async {
     final skywardUser = await getSkywardUser();
-    final gradebook = await skywardUser.getGradebook(forceRefresh: true);
+    final gradebook = await skywardUser.getGradebook();
     final assignments = gradebook.getAllAssignments();
     final newlyFilledAssignments = _getNewlyFilledAssignments(assignments);
     final newlyEnteredAssignments = _getNewlyEnteredAssignments(assignments);
     return newlyFilledAssignments + newlyEnteredAssignments;
   }
 
+  List<Assignment> _getNewlyEnteredAssignments(List<Assignment> assignments) {
+    if (_previousAssignments == null) {
+      _previousAssignments = assignments;
+      return List();
+    }
+    List<Assignment> newlyEnteredAssignments = assignments
+        .where((assignment) => !_previousAssignments.contains(assignment) && assignment.getDecimal() != null)
+        .toList();
+    _previousAssignments = assignments;
+    return newlyEnteredAssignments;
+  }
+
   List<Assignment> _getNewlyFilledAssignments(List<Assignment> assignments) {
     final emptyAssignments = assignments
         .where((assignment) => assignment.isNotGraded())
         .toList();
-    final newAssignments = _previousEmptyAssignments
+    final newlyFilledAssignments = _previousEmptyAssignments
         .where((assignment) => !emptyAssignments.contains(assignment))
         .toList();
     _previousEmptyAssignments = emptyAssignments;
-    return newAssignments;
-  }
-
-  List<Assignment> _getNewlyEnteredAssignments(List<Assignment> assignments) {
-    Map<String, List<Assignment>> assignmentsByClass = Map();
-    for (final assignment in assignments) {
-      assignmentsByClass.putIfAbsent(assignment.courseID, () => List());
-      assignmentsByClass[assignment.courseID]
-        ..add(assignment);
-    }
-    final newAssignments = List<Assignment>();
-    for (final recentGrade in _previousRecentAssignments.entries) {
-      final classAssignments = assignmentsByClass[recentGrade.key];
-      final newClassAssignments = classAssignments
-          .sublist(classAssignments.indexOf(recentGrade.value) + 1);
-      newAssignments.addAll(newClassAssignments);
-    }
-    _previousRecentAssignments = assignmentsByClass
-        .map((courseId, assignments) => MapEntry(courseId, assignments.last));
-    return newAssignments;
+    return newlyFilledAssignments;
   }
 }

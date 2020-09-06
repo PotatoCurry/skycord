@@ -31,7 +31,7 @@ main() async {
   bot.onReady.first.then((event) => bot.self.setPresence(game: Presence.of("s!help")));
 
   Timer.periodic(Duration(minutes: 30), (t) async {
-    log.fine("Grade notification timer ran");
+    log.fine("Running new grade checker");
     for (SkycordUser skycordUser in skycordUsers.values.where((user) => user.isSubscribed)) {
       final discordUser = await skycordUser.getDiscordUser(bot);
       final userInfo = "${discordUser.tag} (${skycordUser.key})";
@@ -51,7 +51,7 @@ main() async {
         print(e);
       }
     }
-    log.fine("Grade notification timer finished");
+    log.fine("New grade checker finished");
   });
 }
 

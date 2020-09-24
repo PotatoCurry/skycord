@@ -26,17 +26,13 @@ Future<Nyxx.EmbedBuilder> createAssignmentEmbed(Assignment assignment, User skyw
         content: property.info
     );
   } else {
-    for (AssignmentProperty property in assignmentDetails)
+    for (final property in assignmentDetails)
       embed.addField(
           name: property.infoName,
           content: property.info,
           inline: true
       );
   }
-
-  const imageAttribute = "Student Image Href Link";
-  if (skywardInfo.studentAttributes.containsKey(imageAttribute))
-    embed.thumbnailUrl = skywardInfo.studentAttributes[imageAttribute];
 
   return embed;
 }
